@@ -8,22 +8,34 @@ from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 from moviepy.video.io.ffmpeg_tools import ffmpeg_merge_video_audio
 import re
          
-         
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
 
-        def dondeguardar():
-          global directory
-          directory = filedialog.askdirectory()
-          print(directory)
+        def dondeguardarmp3():
+          global directorymp3
+          directorymp3 = filedialog.askdirectory()
+          print(directorymp3)
+          rutaguardadomp3.configure(text=f"Se va a guardar en   ->   {directorymp3}")
 
+        
+        def dondeguardarvideo():
+          global directoryvideo
+          directoryvideo = filedialog.askdirectory()
+          print(directoryvideo)
+          rutaguardadovideo.configure(text=f"Se va a guardar en   ->   {directoryvideo}")
+      
 
         def descargarmp3():
+          descargaA = 0
           url = mp3_frame_link.get()
           print(url)
           video = YouTube(url, use_oauth=False, allow_oauth_cache=True)
           if mp3_frame_esplaylist.get() == 0:              #NO es playlist
+            descargaB = 1
+            textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}")
+            App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             try:
                 stream = video.streams.filter(only_audio=True).first()
                 VideoTitle =  video.title
@@ -37,25 +49,36 @@ class App(customtkinter.CTk):
                 VideoTitle = re.sub('[^A-Za-z0-9 ]+', '', VideoTitle)
                 VideoTitle.encode('ascii', 'ignore').decode('ascii')
                 #stream.download(output_path=directory, filename=f"{VideoTitle}.mp3") #metodo 1 descargar mp3
-                video.streams.get_by_itag(140).download(output_path=directory, filename=f"{VideoTitle} 128k.mp3") #metodo 2 descargar mp3 en 128k
+                video.streams.get_by_itag(140).download(output_path=directorymp3, filename=f"{VideoTitle} 128k.mp3") #metodo 2 descargar mp3 en 128k
+                descargaA = 1
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
                 print(VideoTitle)
                 print("DESCARGA COMPLETA")
             except AgeRestrictedError:
                 print(f"{video.title} ---- is age restricted.")
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR video con filtro de edad")
             except MembersOnly:
                 print(f"{video.title} ---- Video is members-only.")
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoPrivate:
                 print(f"{video.title} ---- video privado")
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoRegionBlocked:
                 print(f"{video.title} ---- video no disponible para arg")
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoUnavailable:
                 print(f"{video.title} ---- video no disponible")
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except Exception:
                 print('ERROR DESCONOCIDO')
+                textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
           else:                            #SI es playlist
             p = Playlist(str(url))
             print(f'Descargando la playlist: {p.title}')
             print('Cantidad de videos: %s' % len(p.video_urls))
+            descargaB = len(p.video_urls)
+            textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}")
+            App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             for video in p.videos:
                 try:
                   stream = video.streams.filter(only_audio=True).first()
@@ -70,27 +93,40 @@ class App(customtkinter.CTk):
                   VideoTitle = re.sub('[^A-Za-z0-9 ]+', '', VideoTitle)
                   VideoTitle.encode('ascii', 'ignore').decode('ascii')
                   #stream.download(output_path=directory, filename=f"{VideoTitle}.mp3") #metodo 1 descargar mp3
-                  video.streams.get_by_itag(140).download(output_path=directory, filename=f"{VideoTitle} 128k.mp3") #metodo 2 descargar mp3 en 128k
+                  video.streams.get_by_itag(140).download(output_path=directorymp3, filename=f"{VideoTitle} 128k.mp3") #metodo 2 descargar mp3 en 128k
                   print(VideoTitle)
+                  descargaA = descargaA + 1
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
                 except AgeRestrictedError:
                   print(f"{video.title} ---- is age restricted.")
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR video con filtro de edad")
                 except MembersOnly:
                   print(f"{video.title} ---- Video is members-only.")
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
                 except VideoPrivate:
                   print(f"{video.title} ---- video privado")
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
                 except VideoRegionBlocked:
                   print(f"{video.title} ---- video no disponible para arg")
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
                 except VideoUnavailable:
                   print(f"{video.title} ---- video no disponible")
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
                 except Exception:
                   print('ERROR DESCONOCIDO')
+                  textodescargandoaudio.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
+                App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             print("DESCARGA COMPLETA")
         
         def descargarvideo() :
+          descargaA = 0
           url = video_frame_link.get()
           print(url)
           video = YouTube(url, use_oauth=False, allow_oauth_cache=True)
           if video_frame_esplaylist.get() == 0:              #NO es playlist
+            descargaB = 1
+            textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}")
+            App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             try:
                resolucion = resolmenu.get()
                stream = video.streams.filter(adaptive=True, file_extension='mp4', res=resolucion).first()
@@ -105,13 +141,13 @@ class App(customtkinter.CTk):
                VideoTitle = re.sub('[^A-Za-z0-9 ]+', '', VideoTitle)
                VideoTitle.encode('ascii', 'ignore').decode('ascii')
                #print(video.streams.filter(adaptive=True, file_extension='mp4').order_by('resolution'))
-               stream.download(output_path=directory, filename=f"{VideoTitle}.mp4")
-               video.streams.get_by_itag(140).download(output_path=directory, filename="audio.mp3") #itag 140 = 128k
-               video_clip = VideoFileClip(os.path.join(directory, f"{VideoTitle}.mp4"))
-               audio_clip = AudioFileClip(os.path.join(directory, "audio.mp3"))
-               ffmpeg_merge_video_audio(os.path.join(directory, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
-                         os.path.join(directory, "audio.mp3"),                        #es muy efectivo 1 hora de video = 1 minuto para merge
-                         os.path.join(directory, f"{VideoTitle} {resolucion}.mp4"),
+               stream.download(output_path=directoryvideo, filename=f"{VideoTitle}.mp4")
+               video.streams.get_by_itag(140).download(output_path=directoryvideo, filename="audio.mp3") #itag 140 = 128k
+               video_clip = VideoFileClip(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+               audio_clip = AudioFileClip(os.path.join(directoryvideo, "audio.mp3"))
+               ffmpeg_merge_video_audio(os.path.join(directoryvideo, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
+                         os.path.join(directoryvideo, "audio.mp3"),                        #es muy efectivo 1 hora de video = 1 minuto para merge
+                         os.path.join(directoryvideo, f"{VideoTitle} {resolucion}.mp4"),
                          vcodec='copy',
                          acodec='copy',
                          ffmpeg_output=False,
@@ -120,8 +156,10 @@ class App(customtkinter.CTk):
                #video_clip.write_videofile("final.mp4", threads = 8)      el rendimiento es pesimo 11min video = 2 min para merge
                video_clip.close()
                audio_clip.close()
-               os.remove(os.path.join(directory, "audio.mp3"))
-               os.remove(os.path.join(directory, f"{VideoTitle}.mp4"))
+               os.remove(os.path.join(directoryvideo, "audio.mp3"))
+               os.remove(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+               descargaA = 1
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
                print(VideoTitle)
                print("DESCARGA COMPLETA")
             except AttributeError:
@@ -149,13 +187,13 @@ class App(customtkinter.CTk):
                VideoTitle = re.sub('[^A-Za-z0-9 ]+', '', VideoTitle)
                VideoTitle.encode('ascii', 'ignore').decode('ascii')
                #print(video.streams.filter(adaptive=True, file_extension='mp4').order_by('resolution'))
-               stream.download(output_path=directory, filename=f"{VideoTitle}.mp4")
-               video.streams.get_by_itag(140).download(output_path=directory, filename="audio.mp3") #itag 140 = 128k
-               video_clip = VideoFileClip(os.path.join(directory, f"{VideoTitle}.mp4"))
-               audio_clip = AudioFileClip(os.path.join(directory, "audio.mp3"))
-               ffmpeg_merge_video_audio(os.path.join(directory, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
-                         os.path.join(directory, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
-                         os.path.join(directory, f"{VideoTitle} {resolucion}.mp4"),
+               stream.download(output_path=directoryvideo, filename=f"{VideoTitle}.mp4")
+               video.streams.get_by_itag(140).download(output_path=directoryvideo, filename="audio.mp3") #itag 140 = 128k
+               video_clip = VideoFileClip(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+               audio_clip = AudioFileClip(os.path.join(directoryvideo, "audio.mp3"))
+               ffmpeg_merge_video_audio(os.path.join(directoryvideo, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
+                         os.path.join(directoryvideo, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
+                         os.path.join(directoryvideo, f"{VideoTitle} {resolucion}.mp4"),
                          vcodec='copy',
                          acodec='copy',
                          ffmpeg_output=False,
@@ -164,26 +202,37 @@ class App(customtkinter.CTk):
                #video_clip.write_videofile("final.mp4", threads = 8)      el rendimiento es muy pesimo 11min video = 2 min para merge
                video_clip.close()
                audio_clip.close()
-               os.remove(os.path.join(directory, "audio.mp3"))
-               os.remove(os.path.join(directory, f"{VideoTitle}.mp4"))
+               os.remove(os.path.join(directoryvideo, "audio.mp3"))
+               os.remove(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+               descargaA = 1
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
                print(VideoTitle)
                print("DESCARGA COMPLETA")
             except AgeRestrictedError:
                print(f"{video.title} ---- is age restricted.")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR video con filtro de edad")
             except MembersOnly:
                print(f"{video.title} ---- Video is members-only.")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoPrivate:
                print(f"{video.title} ---- video privado")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoRegionBlocked:
                print(f"{video.title} ---- video no disponible para arg")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except VideoUnavailable:
                print(f"{video.title} ---- video no disponible")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
             except Exception:
                print('ERROR DESCONOCIDO')
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
           else:                            #SI es playlist
             p = Playlist(str(url))
             print(f'Descargando la playlist: {p.title}')
             print('Cantidad de videos: %s' % len(p.video_urls))
+            descargaB = len(p.video_urls)
+            textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}")
+            App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             for video in p.videos:
               try:
                  resolucion = resolmenu.get()
@@ -199,13 +248,13 @@ class App(customtkinter.CTk):
                  VideoTitle = re.sub('[^A-Za-z0-9 ]+', '', VideoTitle)
                  VideoTitle.encode('ascii', 'ignore').decode('ascii')
                  #print(video.streams.filter(adaptive=True, file_extension='mp4').order_by('resolution'))
-                 stream.download(output_path=directory, filename=f"{VideoTitle}.mp4")
-                 video.streams.get_by_itag(140).download(output_path=directory, filename="audio.mp3") #itag 140 = 128k
-                 video_clip = VideoFileClip(os.path.join(directory, f"{VideoTitle}.mp4"))
-                 audio_clip = AudioFileClip(os.path.join(directory, "audio.mp3"))
-                 ffmpeg_merge_video_audio(os.path.join(directory, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
-                         os.path.join(directory, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
-                         os.path.join(directory, f"{VideoTitle} {resolucion}.mp4"),
+                 stream.download(output_path=directoryvideo, filename=f"{VideoTitle}.mp4")
+                 video.streams.get_by_itag(140).download(output_path=directoryvideo, filename="audio.mp3") #itag 140 = 128k
+                 video_clip = VideoFileClip(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+                 audio_clip = AudioFileClip(os.path.join(directoryvideo, "audio.mp3"))
+                 ffmpeg_merge_video_audio(os.path.join(directoryvideo, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
+                         os.path.join(directoryvideo, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
+                         os.path.join(directoryvideo, f"{VideoTitle} {resolucion}.mp4"),
                          vcodec='copy',
                          acodec='copy',
                          ffmpeg_output=False,
@@ -214,8 +263,10 @@ class App(customtkinter.CTk):
                  #video_clip.write_videofile("final.mp4", threads = 8)      el rendimiento es muy pesimo 11min video = 2 min para merge
                  video_clip.close()
                  audio_clip.close()
-                 os.remove(os.path.join(directory, "audio.mp3"))
-                 os.remove(os.path.join(directory, f"{VideoTitle}.mp4"))
+                 os.remove(os.path.join(directoryvideo, "audio.mp3"))
+                 os.remove(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+                 descargaA = descargaA + 1
+                 textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
                  print(VideoTitle)
               except AttributeError:
                  resoluciones = str(video.streams.filter(adaptive=True, file_extension='mp4').order_by('resolution'))
@@ -240,13 +291,13 @@ class App(customtkinter.CTk):
                  VideoTitle.encode('ascii', 'ignore').decode('ascii')
                  print(VideoTitle)
                  #print(video.streams.filter(adaptive=True, file_extension='mp4').order_by('resolution'))
-                 stream.download(output_path=directory, filename=f"{VideoTitle}.mp4")
-                 video.streams.get_by_itag(140).download(output_path=directory, filename="audio.mp3") #itag 140 = 128k
-                 video_clip = VideoFileClip(os.path.join(directory, f"{VideoTitle}.mp4"))
-                 audio_clip = AudioFileClip(os.path.join(directory, "audio.mp3"))
-                 ffmpeg_merge_video_audio(os.path.join(directory, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
-                         os.path.join(directory, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
-                         os.path.join(directory, f"{VideoTitle} {resolucion}.mp4"),
+                 stream.download(output_path=directoryvideo, filename=f"{VideoTitle}.mp4")
+                 video.streams.get_by_itag(140).download(output_path=directoryvideo, filename="audio.mp3") #itag 140 = 128k
+                 video_clip = VideoFileClip(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+                 audio_clip = AudioFileClip(os.path.join(directoryvideo, "audio.mp3"))
+                 ffmpeg_merge_video_audio(os.path.join(directoryvideo, f"{VideoTitle}.mp4"), #metodo 2 para hacer merge de audio y video
+                         os.path.join(directoryvideo, "audio.mp3"),                     #es muy efectivo 1 hora de video = 1 minuto para merge
+                         os.path.join(directoryvideo, f"{VideoTitle} {resolucion}.mp4"),
                          vcodec='copy',
                          acodec='copy',
                          ffmpeg_output=False,
@@ -255,21 +306,29 @@ class App(customtkinter.CTk):
                  #video_clip.write_videofile("final.mp4", threads = 8)      el rendimiento es muy pesimo 11min video = 2 min para merge
                  video_clip.close()
                  audio_clip.close()
-                 os.remove(os.path.join(directory, "audio.mp3"))
-                 os.remove(os.path.join(directory, f"{VideoTitle}.mp4"))
-                 VideoTitle =  video.title
+                 os.remove(os.path.join(directoryvideo, "audio.mp3"))
+                 os.remove(os.path.join(directoryvideo, f"{VideoTitle}.mp4"))
+                 descargaA = descargaA + 1
+                 textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}     -     {VideoTitle}")
               except AgeRestrictedError:
                print(f"{video.title} ---- is age restricted.")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR video con filtro de edad")
               except MembersOnly:
                print(f"{video.title} ---- Video is members-only.")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
               except VideoPrivate:
                print(f"{video.title} ---- video privado")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
               except VideoRegionBlocked:
                print(f"{video.title} ---- video no disponible para arg")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
               except VideoUnavailable:
                print(f"{video.title} ---- video no disponible")
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
               except Exception:
                print('ERROR DESCONOCIDO')
+               textodescargandovideo.configure(text=f"Descargando...      {descargaA} / {descargaB}   -   ERROR")
+              App.update(self) #FUN DA MEN TAL para que windows NO considere que la app no esta respondiendo
             print("DESCARGA COMPLETA")
 
 
@@ -285,7 +344,7 @@ class App(customtkinter.CTk):
         #DESACTIVA RESIZE
         self.resizable(False,False)
         #TITULO
-        self.title("Youtube Downloader - Ivan Yungblut - v1.0")
+        self.title("Youtube Downloader - Ivan Yungblut - v1.1.0")
         #TEMATICA COLOR
         customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
         customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -330,7 +389,7 @@ class App(customtkinter.CTk):
 
         #boton HOME
         self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        label = customtkinter.CTkLabel(self.home_frame, text="made w customtkinter, pytube, moviepy", fg_color="transparent")
+        label = customtkinter.CTkLabel(self.home_frame, text="made w customtkinter, pytube, moviepy, ffmpeg_tools", fg_color="transparent")
         label.place(relx=0.05, rely=0.05)
 
         #boton MP3
@@ -338,18 +397,24 @@ class App(customtkinter.CTk):
         self.mp3_frame.grid_rowconfigure(0, weight=1)
         ###crea tick para playlist
         mp3_frame_esplaylist = customtkinter.CTkCheckBox(master=self.mp3_frame, text="Playlist?")
-        mp3_frame_esplaylist.grid(row=0, column=1, pady=30, padx=30, sticky="wn")
+        mp3_frame_esplaylist.grid(row=0, column=0, pady=30, padx=30, sticky="wn")
         ###ruta guardado
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
         self.carpeta = customtkinter.CTkImage(Image.open(os.path.join(image_path, "carpeta.png")), size=(30, 30))
-        self.mp3_frame_guardado = customtkinter.CTkButton(self.mp3_frame, text="Ruta de guardado", image=self.carpeta, compound="right", command=dondeguardar)
-        self.mp3_frame_guardado.grid(row=0, column=3, padx=30, pady=23, sticky="en")
+        self.mp3_frame_guardado = customtkinter.CTkButton(self.mp3_frame, text="Ruta de guardado", image=self.carpeta, compound="right", command=dondeguardarmp3)
+        self.mp3_frame_guardado.grid(row=0, column=0, padx=490, pady=23, sticky="nw")
+        ###muestra ruta guardado
+        rutaguardadomp3 = customtkinter.CTkLabel(self.mp3_frame, text=f"Se va a guardar en   ->", fg_color="transparent") #wraplength con row/col
+        rutaguardadomp3.grid(row=0, column=0, padx=30, pady=70, sticky="nw")
         ####crea el texto para pegar el link
         mp3_frame_link = customtkinter.CTkEntry(self.mp3_frame, placeholder_text="Ingresar el URL del vivo/video/playlist de youtube", width=440)
-        mp3_frame_link.grid(row=2, column=1, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="nsew")
+        mp3_frame_link.grid(row=1, column=0, padx=(20, 0), pady=(20, 20), sticky="sw")
         ####crea el boton para descargar
         mp3_frame_download = customtkinter.CTkButton(self.mp3_frame, fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Download", command=descargarmp3)
-        mp3_frame_download.grid(row=2, column=3, padx=30, pady=(20, 20), sticky="sw")
+        mp3_frame_download.grid(row=1, column=0, columnspan=2, padx=(490, 0), pady=(20, 20), sticky="sw")
+        ####crea texto descargando... 1/500 example
+        textodescargandoaudio = customtkinter.CTkLabel(self.mp3_frame, text=f"Descargando...      0 / 0", fg_color="transparent") #wraplength con row/col
+        textodescargandoaudio.grid(row=0, column=0, padx=30, pady=150, sticky="nw")
 
 
         #boton VIDEO
@@ -361,18 +426,24 @@ class App(customtkinter.CTk):
         ###ruta guardado
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
         self.carpeta = customtkinter.CTkImage(Image.open(os.path.join(image_path, "carpeta.png")), size=(30, 30))
-        self.video_frame_guardado = customtkinter.CTkButton(self.video_frame, text="Ruta de guardado", image=self.carpeta, compound="right", command=dondeguardar)
-        self.video_frame_guardado.grid(row=0, column=1, padx=330, pady=23, sticky="nw")
+        self.video_frame_guardado = customtkinter.CTkButton(self.video_frame, text="Ruta de guardado", image=self.carpeta, compound="right", command=dondeguardarvideo)
+        self.video_frame_guardado.grid(row=0, column=0, padx=490, pady=23, sticky="nw")
+        ###muestra ruta guardado
+        rutaguardadovideo = customtkinter.CTkLabel(self.video_frame, text=f"Se va a guardar en   ->", fg_color="transparent") #wraplength con row/col
+        rutaguardadovideo.grid(row=0, column=0, padx=30, pady=70, sticky="nw")
         ####crea el texto para pegar el link
         video_frame_link = customtkinter.CTkEntry(self.video_frame, placeholder_text="Ingresar el URL del vivo/video/playlist de youtube", width=440)
         video_frame_link.grid(row=1, column=0, columnspan=2, padx=(20, 0), pady=(20, 20), sticky="sw")
         ####crea el boton para descargar
         video_frame_download = customtkinter.CTkButton(self.video_frame, fg_color="transparent", border_width=2, text_color=("gray10", "#DCE4EE"), text="Download", command=descargarvideo)
-        video_frame_download.grid(row=1, column=1, padx=330, pady=(20, 20), sticky="sw")
+        video_frame_download.grid(row=1, column=0, columnspan=2, padx=(490, 0), pady=(20, 20), sticky="sw")
         ###crea nav para resolucion del video
         resolmenu = customtkinter.CTkOptionMenu(self.video_frame, dynamic_resizing=False,
                                                 values=["1080p", "720p", "480p", "360p", "240p", "144p"])
-        resolmenu.grid(row=0, column=1, padx=80, pady=28, sticky="nw")
+        resolmenu.grid(row=0, column=0, padx=230, pady=28, sticky="nw")
+        ####crea texto descargando... 1/500 example
+        textodescargandovideo = customtkinter.CTkLabel(self.video_frame, text=f"Descargando...      0 / 0", fg_color="transparent") #wraplength con row/col
+        textodescargandovideo.grid(row=0, column=0, padx=30, pady=150, sticky="nw")
 
 
         #boton LIVE
